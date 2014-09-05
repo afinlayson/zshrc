@@ -1,0 +1,110 @@
+
+alias pstree="pstree -g 2"
+#alias ls="ls -a"
+alias l="ls -a"
+alias ll="ls -al"
+alias la="ls -a"
+
+alias cd..="cd .."
+alias g="grep"
+alias p=pwd
+alias P="ps -ef"
+alias h="history"
+alias npt="sudo tail -f nohup.out"
+alias "sudo -s"="sudo zsh"
+
+EDITOR=vim
+
+
+
+#**************************************************
+#Functions
+#**************************************************
+# BUILD MACHINES
+ConnectToHost(){
+    setprompt $1
+    ssh -l afinlayson $1 $2
+    setprompt
+}
+sudoIfNeeded () {
+	COMMAND=$1 
+	FILE="" 
+	ARG="" 
+	SUDO="" 
+	shift
+	while [ "$1" != "" ]
+	do
+		if [ -e $1 ]
+		then
+			FILEUSER=`ls -l $1 | awk '{print $3}'` 
+			if [ "$FILEUSER" = "root" ]
+			then
+				SUDO="/usr/bin/sudo" 
+			fi
+			FILE+=$1 
+		else
+			ARG+=$1 
+		fi
+		shift
+	done
+	echo "Running $SUDO $COMMAND $ARG $FILE "
+	if [ "$SUDO" != "" ]
+	then
+		print "Using ROOT"
+		$SUDO $COMMAND $ARG $FILE
+	else
+		$COMMAND $ARG $FILE
+	fi
+}
+
+
+
+
+# ff x find file named x
+FF () {
+    find . -name $1 -print
+}
+
+## files x => list files in x
+files () {
+    find $1 -type f -print
+}
+
+# line 5 file => show line 5 of file
+line () {
+    sed -n "$1 p" $2
+}
+
+lll () {
+    ls -lag $* | more
+}
+
+term () {
+    setopt noglob;
+    unset TERMCAP;
+    eval `tset -s -I -Q - $*`
+}
+
+# Grep thru dictionary
+word () {
+    grep $* /usr/share/dict/web2
+}
+
+#vim () # Find out if the file is write only for root and SUDO
+
+DU(){
+du -sk ./* | sort -n | awk 'BEGIN{ pref[1]="K"; pref[2]="M"; pref[3]="G";} { total = total + $1; x = $1; y = 1; while( x > 1024 ) { x = (x + 1023)/1024; y++; } printf("%g%s\t%s\n",int(x*10)/10,pref[y],$2); } END { y = 1; while( total > 1024 ) { total = (total + 1023)/1024; y++; } printf("Total: %g%s\n",int(total*10)/10,pref[y]); }'
+}
+vim(){      sudoIfNeeded "/usr/bin/vim" $* }
+tail(){     sudoIfNeeded "/usr/bin/tail" $1 $2 }
+
+
+xcode() {
+    if [ ! -n "$1" ]
+    then
+        open -a Xcode *.xcodeproj
+    else
+        open -a Xcode $1/*.xcodeproj
+    fi
+}
+
